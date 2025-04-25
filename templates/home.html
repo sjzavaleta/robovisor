@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <p class="lead">Welcome to <strong>Robovisor</strong> — your assistant for simple stock research based on common-sense heuristics.</p>
+  <p>Select a tool to get started:</p>
+</div>
+
+<div class="d-grid gap-3 col-sm-6 mx-auto">
+  <a href="{{ url_for('researcher') }}" class="btn btn-primary btn-lg">Analyze a Single Stock</a>
+  <a href="{{ url_for('browser') }}" class="btn btn-success btn-lg">Top Recommendations</a>
+</div>
+{% endblock %}

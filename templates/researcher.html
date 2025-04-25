@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Researcher{% endblock %}
+
+{% block content %}
+<form id="research-form" class="mb-4">
+  <input id="ticker-input" class="form-control" placeholder="e.g. AAPL" required />
+  <button class="btn btn-primary mt-2" type="submit">Analyze</button>
+</form>
+
+<div class="row" id="results">
+  {% for name in ["momentum", "spike", "steady", "dip"] %}
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ name|capitalize }}</h5>
+          <p class="card-text" id="rec-{{ name }}">(loading…)</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="text-center mt-5">
+  <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-sm">← Back to Home</a>
+</div>
+
+<script>
+  const form = document.getElementById("research-form");
+  const input = document.getElementById("ticker-input");
+
+  form.addEventListener("submit", async (e) => {
+    console.log("Event!")
+    e.preventDefault();
+    const ticker = input.value.trim().toUpperCase();
+    const recTypes = ["momentum", "spike", "steady", "dip"];
+
+    for (const type of recTypes) {
+      console.log("Looking at anothe recType")
+      const el = document.getElementById(`rec-${type}`);
+      el.textContent = "Loading…";
+
+      try {
+        const res = await fetch(`/api/recommendation/${type}/${ticker}`);
+        if (!res.ok) throw new Error("bad response");
+        console.log("Starting to await data")
+        const data = await res.json();
+        console.log("The data awaiting is over")
+        el.textContent = data.reason || "No recommendation";
+      } catch (err) {
+        el.textContent = "Error fetching recommendation.";
+        console.error(`Error fetching ${type}:`, err);
+      }
+    }
+  });
+</script>
+{% endblock %}
