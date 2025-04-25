@@ -1,1 +1,1 @@
-web: gunicorn robovisor:app
+web: gunicorn wsgi:app
