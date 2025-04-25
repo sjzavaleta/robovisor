@@ -33,20 +33,15 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Heroku CLI
-      run: |
-        curl https://cli-assets.heroku.com/install.sh | sh
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: robovisor-staging
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          branch: main
 
-    - name: Login to Heroku
-      run: echo "HRKU-a3e1ebce-03c3-4b7a-a32a-dd5d38b43b78" | heroku auth:token
-      env:
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-
-    - name: Push to Heroku
-      run: |
-        git remote add heroku https://git.heroku.com/robovisor-staging.git
-        git push heroku main --force
 
