@@ -1,13 +1,12 @@
 import pytest
 from robovisor import create_app, db
 from robovisor.models import Price
-from robovisor.config import TestingConfig
 from datetime import date, timedelta
 from robovisor.data_fetchers.price_fetcher import PriceFetcher
 
 @pytest.fixture
 def app():
-    app = create_app(TestingConfig)
+    app = create_app()
     with app.app_context():
         db.create_all()
         yield app
@@ -16,23 +15,22 @@ def app():
 
 @pytest.fixture
 def session_with_prices(app):
-    with app.app_context():
-        db.create_all()
-        today = date.today()
-        prices = [
-            Price(ticker="AAPL", date=today - timedelta(days=2), open=100, close=100, high=100, low=100, volume=1000),
-            Price(ticker="AAPL", date=today - timedelta(days=1), open=105, close=105, high=105, low=105, volume=2000),
-            Price(ticker="AAPL", date=today, open=110, close=110, high=110, low=110, volume=1500)
-        ]
-        db.session.add_all(prices)
 
-        yield db.session
+    today = date.today()
+    prices = [
+        Price(ticker="AAPL", date=today - timedelta(days=2), open=100, close=100, high=100, low=100, volume=1000),
+        Price(ticker="AAPL", date=today - timedelta(days=1), open=105, close=105, high=105, low=105, volume=2000),
+        Price(ticker="AAPL", date=today, open=110, close=110, high=110, low=110, volume=1500)
+    ]
+    db.session.add_all(prices)
 
-        db.session.rollback()
+    yield db.session
+
+    db.session.rollback()
+
 # happy path
 
 def test_latest_value(session_with_prices):
-    print("Running a test")
     price_fetcher = PriceFetcher(session_with_prices)
     assert price_fetcher.get_latest_value("AAPL", "close") == 110
 

@@ -14,6 +14,7 @@ def create_app():
     # Configure app by environment
     # Mostly thais sets the db 
     env = os.getenv("FLASK_ENV", "dev")
+    print("Got env", env)
     config_map = {
         "dev": DevelopmentConfig,
         "prod": ProductionConfig,
@@ -42,14 +43,15 @@ def create_app():
 
     # Detect if db needs backfilling or updating
     with app.app_context():
-        inspector = inspect(db.engine)
-        tables = inspector.get_table_names()
+        if (env == "prod"):
+            inspector = inspect(db.engine)
+            tables = inspector.get_table_names()
 
-        if "price" not in tables:
-            print("Database is uninitialized, running backfill...")
-            db.create_all()
-            from robovisor.datacollectors.collector import backfill_db
-            backfill_db()
+            if "price" not in tables:
+                print("Database is uninitialized, running backfill...")
+                db.create_all()
+                from robovisor.datacollectors.collector import backfill_db
+                backfill_db()
 
         from robovisor.views import register_routes
         register_routes(app)

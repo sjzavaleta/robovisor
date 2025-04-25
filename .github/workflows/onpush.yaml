@@ -8,6 +8,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      FLASK_ENV: test
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -25,7 +27,7 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest  # or whatever your command is
+        pytest
 
   deploy:
     needs: test

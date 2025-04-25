@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
 import requests
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-import os
-from sqlalchemy import inspect
-import pandas as pd
 import time
 from datetime import datetime
-#from src.config import app, db
 from robovisor.models import db, Price, Ticker
 
 sp500 = ['AAPL', 'MSFT', 'NVDA', 'GOOG', 'GOOGL', 'AMZN', 'META',  'AVGO', 'TSLA', 'WMT', 'LLY', 'V', 'JPM', 'UNH', 
@@ -38,8 +32,6 @@ api_key = 'aejOJ0bcmKFDuNt10Br5jbERUKpPDM2Q'
 
 
 def get_price_history(ticker):
-   # db.create_all()
-    #response = requests.get(f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={ticker}&apikey=LN8C7IRONWBRMOPS")
     response = requests.get(f"https://financialmodelingprep.com/stable/historical-price-eod/full?symbol={ticker}&apikey={api_key}")
     response.raise_for_status()
     daily_prices = response.json()
@@ -90,10 +82,7 @@ def refresh_db():
 
 def backfill_db():
     print("Backfilling")
-    #listing_df = pd.read_csv("https://www.alphavantage.co/query?function=LISTING_STATUS&apikey=LN8C7IRONWBRMOPS")
-    # active_stocks = listing_df[(listing_df['status'] == 'Active') & (listing_df['assetType'] == 'Stock')]
     tickers = sp500 #['AAPL', 'MSFT', 'GOOG', 'GOOGL', 'NVDA'] #active_stocks['symbol'].tolist()
-    # print("actual size", len(tickers))
     tickers = tickers[:100]
     for ticker in tickers:
         print("Processing ", ticker)
