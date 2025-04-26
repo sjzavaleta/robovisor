@@ -21,6 +21,9 @@ def create_app():
         "test": TestingConfig,
     }
     app.config.from_object(config_map[env])
+    if app.config.get("SQLALCHEMY_DATABASE_URI", "").startswith("postgres://"):
+        app.config["SQLALCHEMY_DATABASE_URI"] = app.config["SQLALCHEMY_DATABASE_URI"].replace("postgres://", "postgresql://", 1)
+
     db.init_app(app)
 
     # Configure the logger, preferring verbose info level logging
