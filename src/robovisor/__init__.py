@@ -13,12 +13,12 @@ def create_app():
 
     # Configure app by environment
     # Mostly thais sets the db 
-    env = os.getenv("FLASK_ENV", "dev")
+    env = os.getenv("FLASK_ENV", "development")
     print("Got env", env)
     config_map = {
-        "dev": DevelopmentConfig,
-        "prod": ProductionConfig,
-        "test": TestingConfig,
+        "development": DevelopmentConfig,
+        "production": ProductionConfig,
+        "testing": TestingConfig,
     }
     app.config.from_object(config_map[env])
     db.init_app(app)
