@@ -49,7 +49,7 @@ def create_app():
 
             if "price" not in tables:
                 print("Database is uninitialized, running backfill...")
-                db.create_all()
+                #db.create_all()
                 from robovisor.datacollectors.collector import backfill_db
                 backfill_db()
 
