@@ -1,3 +1,8 @@
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
+
 from robovisor import create_app, db
 from robovisor.datacollectors.collector import backfill_db
 
