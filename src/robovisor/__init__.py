@@ -43,7 +43,7 @@ def create_app():
 
     # Detect if db needs backfilling or updating
     with app.app_context():
-        if (env == "prod"):
+        if (env == "production"):
             inspector = inspect(db.engine)
             tables = inspector.get_table_names()
 
