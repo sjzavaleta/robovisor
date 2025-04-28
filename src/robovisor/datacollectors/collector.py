@@ -85,9 +85,9 @@ def get_price_history(ticker):
       upsert_price(db.session, new_price)
 
 def get_latest_price(ticker):
-    response = requests.get(f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?serietype=line&timeseries=1&apikey={api_key}")
+    response = requests.get(f"https://financialmodelingprep.com/stable/historical-price-eod/full?symbol={ticker}&apikey={api_key}")
     response.raise_for_status()
-    latest_price = response.json()
+    latest_price = response.json()[0]
     
     date = latest_price["date"]
     date = datetime.strptime(date, "%Y-%m-%d").date()
