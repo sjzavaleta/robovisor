@@ -67,6 +67,26 @@ def upsert_price(session, new_price):
 
     session.execute(stmt)
 
+def upsert_ticker(session, new_ticker):
+    dialect_name = db.engine.dialect.name
+
+    if dialect_name == "sqlite":
+        insert_fn = sqlite_insert
+    elif dialect_name == "postgresql":
+        insert_fn = pg_insert
+    else:
+        raise NotImplementedError(f"Unsupported dialect: {dialect_name}")
+
+    stmt = insert_fn(Ticker).values(
+        ticker=new_ticker.ticker
+    )
+
+    stmt = stmt.on_conflict_do_nothing(
+        index_elements=["ticker"]
+    )
+
+    session.execute(stmt)
+
 def get_price_history(ticker):
     response = requests.get(f"https://financialmodelingprep.com/stable/historical-price-eod/full?symbol={ticker}&apikey={api_key}")
     response.raise_for_status()
@@ -107,8 +127,6 @@ def refresh_db():
     tickers = tickers[:100]
     for ticker in tickers:
         print("Refreshing, ", ticker)
-        new_ticker_entry = Ticker(ticker=ticker)
-        db.session.add(new_ticker_entry)
         get_latest_price(ticker)
         time.sleep(.3)
     db.session.commit()
@@ -122,7 +140,7 @@ def backfill_db():
     for ticker in tickers:
         print("Processing ", ticker)
         new_ticker_entry = Ticker(ticker=ticker)
-        db.session.add(new_ticker_entry)
+        upsert_ticker(db.session, new_ticker_entry)
         get_price_history(ticker)
         time.sleep(.3)
     db.session.commit()
