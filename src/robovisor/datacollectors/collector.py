@@ -52,7 +52,9 @@ def upsert_price(session, new_price):
         open=new_price.open,
         close=new_price.close,
         volume=new_price.volume,
-    ).on_conflict_do_update(
+    )
+
+    stmt = stmt.on_conflict_do_update(
         index_elements=["ticker", "date"],
         set_={
             "high": stmt.excluded.high,
