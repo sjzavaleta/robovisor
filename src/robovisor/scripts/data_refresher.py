@@ -1,7 +1,8 @@
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
+print("cwd",str(os.getcwd()))
+sys.path.insert(0, os.path.join(os.getcwd(), 'src'))
 
 from robovisor import create_app
 from robovisor.datacollectors.collector import refresh_db
