@@ -35,7 +35,7 @@ api_key = 'aejOJ0bcmKFDuNt10Br5jbERUKpPDM2Q'
 
 
 def upsert_price(session, new_price):
-    dialect_name = session.bind.dialect.name
+    dialect_name = db.engine.dialect.name
 
     if dialect_name == "sqlite":
         insert_fn = sqlite_insert
