@@ -46,21 +46,9 @@ def create_app():
 
     # Detect if db needs backfilling or updating
     with app.app_context():
-        if (env == "production"):
-            inspector = inspect(db.engine)
-            tables = inspector.get_table_names()
-
-            if "price" not in tables:
-                try:
-                    print("Inspector did not detect price table existing, creting now")
-                    db.create_all()
-                except Exception as e:
-                    print("Exception while creating tables. Possibly the connection was just slow")
-                    logging.warning(e)
-
-                print("Database is uninitialized, running backfill...")
-                from robovisor.datacollectors.collector import backfill_db
-                backfill_db()
+        print("Database is uninitialized, running backfill...")
+        from robovisor.datacollectors.collector import backfill_db
+        backfill_db()
 
         from robovisor.views import register_routes
         register_routes(app)

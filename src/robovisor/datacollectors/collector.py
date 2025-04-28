@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlalchemy import inspect
 from robovisor.models import db, Price, Ticker
 
 sp500 = ['AAPL', 'MSFT', 'NVDA', 'GOOG', 'GOOGL', 'AMZN', 'META',  'AVGO', 'TSLA', 'WMT', 'LLY', 'V', 'JPM', 'UNH', 
@@ -79,8 +80,8 @@ def get_price_history(ticker):
       volume = day_prices["volume"]
       if isinstance(date , list) or isinstance(ticker, list):
         print("Mess up", ticker, date, day_prices)
-      new_entry = Price(ticker=ticker, date=date, high=high, low=low, open=opening, close=close, volume=volume)
-      db.session.add(new_entry)
+      new_price = Price(ticker=ticker, date=date, high=high, low=low, open=opening, close=close, volume=volume)
+      upsert_price(db.session, new_price)
 
 def get_latest_price(ticker):
     response = requests.get(f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?serietype=line&timeseries=1&apikey={api_key}")
@@ -111,8 +112,16 @@ def refresh_db():
     db.session.commit()
 
 
+def tables_dont_exist(): 
+    inspector = inspect(db.session.bind)
+    tables = inspector.get_table_names()
+    return len(tables) != 2 or "price" not in tables or "ticker" not in tables
+        
 def backfill_db():
-    print("Backfilling")
+    if not tables_dont_exist():
+        return
+    db.create_all()
+    print("Backfilling!")
     tickers = sp500 #['AAPL', 'MSFT', 'GOOG', 'GOOGL', 'NVDA'] #active_stocks['symbol'].tolist()
     tickers = tickers[:100]
     for ticker in tickers:
