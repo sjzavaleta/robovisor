@@ -10,7 +10,7 @@ from robovisor.datacollectors.collector import backfill_db
 app = create_app()
 
 with app.app_context():
-    inspector = inspect(db.session.bind)
+    inspector = inspect(db.engine)
     tables = inspector.get_table_names()
     if "price" not in tables or "ticker" not in tables:
         try:

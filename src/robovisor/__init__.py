@@ -47,7 +47,7 @@ def create_app():
     # Detect if db needs backfilling or updating
     with app.app_context():
         if env == "development":
-            inspector = inspect(db.session.bind)
+            inspector = inspect(db.engine)
             tables = inspector.get_table_names()
             if "price" not in tables or "ticker" not in tables:
                 print("Dev environment detected, creating missing tables...")
