@@ -2,6 +2,8 @@
 import requests
 import time
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from robovisor.models import db, Price, Ticker
 
 sp500 = ['AAPL', 'MSFT', 'NVDA', 'GOOG', 'GOOGL', 'AMZN', 'META',  'AVGO', 'TSLA', 'WMT', 'LLY', 'V', 'JPM', 'UNH', 
@@ -30,6 +32,38 @@ not_allowed = ['BRK.B', 'BF.B']
 
 api_key = 'aejOJ0bcmKFDuNt10Br5jbERUKpPDM2Q'
 
+
+
+def upsert_price(session, new_price):
+    dialect_name = session.bind.dialect.name
+
+    if dialect_name == "sqlite":
+        insert_fn = sqlite_insert
+    elif dialect_name == "postgresql":
+        insert_fn = pg_insert
+    else:
+        raise NotImplementedError(f"Unsupported dialect: {dialect_name}")
+
+    stmt = insert_fn(Price).values(
+        ticker=new_price.ticker,
+        date=new_price.date,
+        high=new_price.high,
+        low=new_price.low,
+        open=new_price.open,
+        close=new_price.close,
+        volume=new_price.volume,
+    ).on_conflict_do_update(
+        index_elements=["ticker", "date"],
+        set_={
+            "high": stmt.excluded.high,
+            "low": stmt.excluded.low,
+            "open": stmt.excluded.open,
+            "close": stmt.excluded.close,
+            "volume": stmt.excluded.volume,
+        }
+    )
+
+    session.execute(stmt)
 
 def get_price_history(ticker):
     response = requests.get(f"https://financialmodelingprep.com/stable/historical-price-eod/full?symbol={ticker}&apikey={api_key}")
@@ -61,9 +95,8 @@ def get_latest_price(ticker):
     close = latest_price["close"]
     volume = latest_price["volume"]
 
-    new_entry = Price(ticker=ticker, date=date, high=high, low=low, open=opening, close=close, volume=volume)
-    db.session.add(new_entry)
-
+    new_price = Price(ticker=ticker, date=date, high=high, low=low, open=opening, close=close, volume=volume)
+    upsert_price(db.session, new_price)
 
 
 def refresh_db():
@@ -76,8 +109,6 @@ def refresh_db():
         get_latest_price(ticker)
         time.sleep(.3)
     db.session.commit()
-
-    
 
 
 def backfill_db():

@@ -51,8 +51,14 @@ def create_app():
             tables = inspector.get_table_names()
 
             if "price" not in tables:
+                try:
+                    print("Inspector did not detect price table existing, creting now")
+                    db.create_all()
+                except Exception as e:
+                    print("Exception while creating tables. Possibly the connection was just slow")
+                    logging.warning(e)
+
                 print("Database is uninitialized, running backfill...")
-                #db.create_all()
                 from robovisor.datacollectors.collector import backfill_db
                 backfill_db()
 
