@@ -102,7 +102,8 @@ def get_latest_price(ticker):
 
 
 def refresh_db():
-    print("Refreshding DB")
+    print("Refresding DB")
+    tickers = sp500
     tickers = tickers[:100]
     for ticker in tickers:
         print("Refreshing, ", ticker)
