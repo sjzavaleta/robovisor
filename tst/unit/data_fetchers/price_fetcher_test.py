@@ -36,7 +36,7 @@ def test_latest_value(session_with_prices):
 
 def test_n_days_ago_value(session_with_prices):
     price_fetcher = PriceFetcher(session_with_prices)
-    assert price_fetcher.get_n_days_ago_value("AAPL", 2, "close") == 100
+    assert price_fetcher.get_at_least_n_days_ago_value("AAPL", 2, "close") == 100
 
 def test_n_day_average(session_with_prices):
     price_fetcher = PriceFetcher(session_with_prices)
@@ -56,7 +56,7 @@ def test_latest_value_none(session_with_prices):
 
 def test_n_days_ago_value_none(session_with_prices):
     price_fetcher = PriceFetcher(session_with_prices)
-    assert price_fetcher.get_n_days_ago_value("MSFT", 2, "close") is None
+    assert price_fetcher.get_at_least_n_days_ago_value("MSFT", 2, "close") is None
 
 def test_n_day_average_none(session_with_prices):
     price_fetcher = PriceFetcher(session_with_prices)
@@ -76,4 +76,4 @@ def test_insufficent_days_for_volatility(session_with_prices):
 
 def test_data_for_date_not_exist(session_with_prices):
     price_fetcher = PriceFetcher(session_with_prices)
-    assert price_fetcher.get_n_days_ago_value("AAPL", 20, "close") is None
+    assert price_fetcher.get_at_least_n_days_ago_value("AAPL", 20, "close") is None

@@ -21,14 +21,14 @@ class PriceFetcher():
                 .scalar()
             )
 
-    def get_n_days_ago_value(self, ticker, n, column):
+    def get_at_least_n_days_ago_value(self, ticker, n, column):
         logging.info(f"Getting {column} value of {ticker} {n} days ago")
         n_days = timedelta(days=n)
         n_days_ago = date.today() - n_days
         return (
                 db.session.query(getattr(Price, column))
                 .filter_by(ticker=ticker)
-                .filter(Price.date >= n_days_ago)
+                .filter(Price.date <= n_days_ago)
                 .order_by(Price.date)
                 .limit(1)
                 .scalar()

@@ -26,7 +26,7 @@ def spike_recommendation(ticker, price_fetcher):
     volume_30d = price_fetcher.get_n_day_average(ticker, 30, "volume")
     latest_volume = price_fetcher.get_latest_value(ticker, "volume")
     latest_price = price_fetcher.get_latest_value(ticker, "close")
-    yesterdays_price = price_fetcher.get_n_days_ago_value(ticker, 2, "close")
+    yesterdays_price = price_fetcher.get_at_least_n_days_ago_value(ticker, 2, "close")
     if latest_volume == None or volume_30d == None or latest_price == None or yesterdays_price == None:
         return UnavailableRecommendation("No Recommendation")
     if latest_volume > 2 * volume_30d and latest_price > yesterdays_price:
@@ -36,8 +36,8 @@ def spike_recommendation(ticker, price_fetcher):
 
 
 def dip_recommendation(ticker,price_fetcher):
-    price_10d_ago = price_fetcher.get_n_days_ago_value(ticker, 10, "low")
-    price_5d_ago = price_fetcher.get_n_days_ago_value(ticker, 5, "close")
+    price_10d_ago = price_fetcher.get_at_least_n_days_ago_value(ticker, 10, "low")
+    price_5d_ago = price_fetcher.get_at_least_n_days_ago_value(ticker, 5, "close")
     latest_price = price_fetcher.get_latest_value(ticker, "close")
     if price_10d_ago == None or price_5d_ago == None or latest_price == None:
         return UnavailableRecommendation("No Recommendation")
