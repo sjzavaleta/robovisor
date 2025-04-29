@@ -29,7 +29,7 @@ class PriceFetcher():
                 db.session.query(getattr(Price, column))
                 .filter_by(ticker=ticker)
                 .filter(Price.date <= n_days_ago)
-                .order_by(Price.date)
+                .order_by(Price.date.desc())
                 .limit(1)
                 .scalar()
             )
