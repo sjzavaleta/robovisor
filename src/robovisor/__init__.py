@@ -46,7 +46,7 @@ def create_app():
         return response
 
     with app.app_context():
-         # Detect if db needs backfilling or updating in local context
+        # Detect if db needs backfilling or updating in local context
         # Production db backfilling is hanlded through a bespoke script
         if env == "development":
             inspector = inspect(db.engine)
