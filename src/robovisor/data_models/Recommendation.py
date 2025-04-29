@@ -6,6 +6,7 @@ class Recommendation:
 
     def to_dict(self):
         data = asdict(self)
+        # Have the recommendation format its reason itself during serialization
         data["reason"] = self.format_reason()
         return data
 

@@ -10,7 +10,9 @@ def register_routes(app):
 
     @app.route("/researcher", methods=["GET", "POST"])
     def researcher():
-        fetcher = PriceFetcher()
+        return render_template("researcher.html")
+        """fetcher = PriceFetcher()
+        
         if request.method == "POST":
             ticker = request.form.get("ticker", "").upper().strip()
             momentum_rec = recommender.momentum_recommendation(ticker, fetcher)
@@ -31,7 +33,7 @@ def register_routes(app):
     def browser():
         top_momentum = [('AAPL', 100)]#get_top_n_by_heuristic(momentum_recommendation, n=10)
         top_spike = [('META', 99)]#get_top_n_by_heuristic(spike_recommendation, n=10)
-        return render_template("browser.html", momentum=top_momentum, spike=top_spike)
+        return render_template("browser.html", momentum=top_momentum, spike=top_spike)"""
     
 ### Data APIs
 

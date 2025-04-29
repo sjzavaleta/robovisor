@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from robovisor.models import db, Price, Ticker
+import logging
 
 sp500 = ['AAPL', 'MSFT', 'NVDA', 'GOOG', 'GOOGL', 'AMZN', 'META',  'AVGO', 'TSLA', 'WMT', 'LLY', 'V', 'JPM', 'UNH', 
            'MA', 'XOM', 'COST', 'NFLX', 'PG', 'ORCL', 'JNJ', 'HD', 'ABBV', 'KO', 'TMUS', 'BAC', 'PM', 'CRM', 'CVX', 'CSCO', 'MCD',
@@ -27,14 +28,13 @@ sp500 = ['AAPL', 'MSFT', 'NVDA', 'GOOG', 'GOOGL', 'AMZN', 'META',  'AVGO', 'TSLA
                        'HOLX', 'RJF', 'WDC', 'APA', 'WHR', 'FMC', 'HAS', 'NTRS', 'CHRW', 'INCY', 'XYL', 'MOS', 'ZBRA', 'ALLE', 'LKQ', 
                        'ETR', 'PKG', 'IEX', 'AES', 'VTR', 'AIZ', 'MGM', 'WRK', 'NWL', 'CPB', 'PNW', 'SEE', 'NCLH', 'NRG', 'BBWI', 'APA',
                          'HII', 'XRAY', 'PWR', 'REG', 'AAL', 'UHS', 'BEN', 'DXC', 'DVA', 'OGN', 'IVZ', 'TAP', 'PARA', 'NWSA', 'NWS', 'RL', 'FOX', 'FOXA']
-not_allowed = ['BRK.B', 'BF.B']
 
-
+# Not best practice but I'm go to throw these away
 api_key = 'aejOJ0bcmKFDuNt10Br5jbERUKpPDM2Q'
 
 
-
 def upsert_price(session, new_price):
+    # Try to insert, but if the key exists, change to an update
     dialect_name = db.engine.dialect.name
 
     if dialect_name == "sqlite":
@@ -42,6 +42,7 @@ def upsert_price(session, new_price):
     elif dialect_name == "postgresql":
         insert_fn = pg_insert
     else:
+        # This shouldn't happen, but just in case
         raise NotImplementedError(f"Unsupported dialect: {dialect_name}")
 
     stmt = insert_fn(Price).values(
@@ -68,6 +69,7 @@ def upsert_price(session, new_price):
     session.execute(stmt)
 
 def upsert_ticker(session, new_ticker):
+    # Try to insert but ignore if it already exists
     dialect_name = db.engine.dialect.name
 
     if dialect_name == "sqlite":
@@ -90,6 +92,7 @@ def upsert_ticker(session, new_ticker):
 def get_price_history(ticker):
     response = requests.get(f"https://financialmodelingprep.com/stable/historical-price-eod/full?symbol={ticker}&apikey={api_key}")
     response.raise_for_status()
+
     daily_prices = response.json()
     for day_prices in daily_prices:
       date = day_prices["date"]
@@ -99,15 +102,13 @@ def get_price_history(ticker):
       opening = day_prices["open"]
       close = day_prices["close"]
       volume = day_prices["volume"]
-      if isinstance(date , list) or isinstance(ticker, list):
-        print("Mess up", ticker, date, day_prices)
       new_price = Price(ticker=ticker, date=date, high=high, low=low, open=opening, close=close, volume=volume)
       upsert_price(db.session, new_price)
 
 def get_latest_price(ticker):
     response = requests.get(f"https://financialmodelingprep.com/stable/historical-price-eod/full?symbol={ticker}&apikey={api_key}")
     response.raise_for_status()
-    latest_price = response.json()[0]
+    latest_price = response.json()[0] # Take only the latest
     
     date = latest_price["date"]
     date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -122,45 +123,24 @@ def get_latest_price(ticker):
 
 
 def refresh_db():
-    print("Refresding DB")
+    logging.info("Refreshing DB")
     tickers = sp500
     tickers = tickers[:100]
     for ticker in tickers:
-        print("Refreshing, ", ticker)
+        logging.info("Refreshing", ticker)
         get_latest_price(ticker)
-        time.sleep(.3)
+        time.sleep(.3) # Sleep just enoguh to not get throttled
     db.session.commit()
 
 
 def backfill_db():
     db.create_all()
-    print("Backfilling!")
-    tickers = sp500 #['AAPL', 'MSFT', 'GOOG', 'GOOGL', 'NVDA'] #active_stocks['symbol'].tolist()
-    tickers = tickers[:100]
+    logging.info("Begin DB backfill!")
+    tickers = sp500 
     for ticker in tickers:
-        print("Processing ", ticker)
-        new_ticker_entry = Ticker(ticker=ticker)
+        logging.info("Processing", ticker)
+        new_ticker_entry = Ticker(ticker=ticker) # Add to separate ticker table for easy summarization
         upsert_ticker(db.session, new_ticker_entry)
         get_price_history(ticker)
-        time.sleep(.3)
+        time.sleep(.3) # Sleep just enough to not get throttled
     db.session.commit()
-
-
-
-
-'''
-In main we first get the current temperature and then 
-create a new object that we can add to the database. 
-'''
-#if __name__ == "__main__":
-
- #   backfill_db()
-"""
-with app.app_context():
-    db.create_all()
-    inspector = inspect(db.engine)
-    price_high = get_price_high() 
-    new_entry = Price(price_high=price_high)
-    db.session.add(new_entry)
-    db.session.commit()
-    print("Commit successful!")"""

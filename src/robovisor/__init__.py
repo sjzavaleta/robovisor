@@ -21,6 +21,7 @@ def create_app():
         "test": TestingConfig,
     }
     app.config.from_object(config_map[env])
+    # This is annoying, but sqlalchemy needs postgres urls one way and heroku generates them another
     if app.config.get("SQLALCHEMY_DATABASE_URI", "").startswith("postgres://"):
         app.config["SQLALCHEMY_DATABASE_URI"] = app.config["SQLALCHEMY_DATABASE_URI"].replace("postgres://", "postgresql://", 1)
 
@@ -44,8 +45,9 @@ def create_app():
         app.logger.info(f"{request.method} {request.path} {response.status_code} took {duration:.3f}s")
         return response
 
-    # Detect if db needs backfilling or updating
     with app.app_context():
+         # Detect if db needs backfilling or updating in local context
+        # Production db backfilling is hanlded through a bespoke script
         if env == "development":
             inspector = inspect(db.engine)
             tables = inspector.get_table_names()
@@ -56,6 +58,7 @@ def create_app():
                 from robovisor.datacollectors.collector import backfill_db
                 backfill_db()
 
+        # Always register the api routes though
         from robovisor.views import register_routes
         register_routes(app)
 

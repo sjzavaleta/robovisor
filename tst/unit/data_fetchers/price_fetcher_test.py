@@ -28,7 +28,7 @@ def session_with_prices(app):
 
     db.session.rollback()
 
-# happy path
+# Happy Path
 
 def test_latest_value(session_with_prices):
     price_fetcher = PriceFetcher(session_with_prices)
@@ -67,8 +67,6 @@ def test_n_day_volatility_none(session_with_prices):
     assert price_fetcher.get_n_day_volatility("MSFT", 2) is None
 
 # Other cases of no data
-
-
 
 def test_insufficent_days_for_volatility(session_with_prices):
     price_fetcher = PriceFetcher(session_with_prices)
